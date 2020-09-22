@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Slides.utf8</title>
+    <meta charset="utf-8" />
+    <link href="Slides_files/remark-css/default.css" rel="stylesheet" />
+    <link href="Slides_files/tachyons/tachyons.min.css" rel="stylesheet" />
+    <link href="Slides_files/panelset/panelset.css" rel="stylesheet" />
+    <script src="Slides_files/panelset/panelset.js"></script>
+    <link href="Slides_files/xaringanExtra-extra-styles/xaringanExtra-extra-styles.css" rel="stylesheet" />
+    <link rel="stylesheet" href="VictoriaUniversity.css" type="text/css" />
+    <link rel="stylesheet" href="VictoriaUniversity-fonts.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+
+class: title-slide, bottom, hide_logo
+background-image: url(https://pbs.twimg.com/media/EiPx8D4VgAEA2Z1.jpg)
+background-size: cover
+
+.right[ 
+
+# Analysing Netball Data in R
+## Alice Sweeting, PhD  
+
+&lt;br&gt;
+&lt;br&gt;
+Image by Suncorp Super Netball
+&lt;br&gt;
+Ball Artwork by © Simone Thomson Yorta-Yorta/ Wurundjeri
+]
+
+ 
+
+
+&lt;style type="text/css"&gt;
+pre {
+  background: #FFFFFF;
+  max-width: 100%;
+  overflow-x: scroll;
+}
+&lt;/style&gt;
+
+
+<div>
+<style type="text/css">.xaringan-extra-logo {
+width: 200px;
+height: 200px;
+z-index: 0;
+background-image: url(https://raw.githubusercontent.com/SportStatisticsRSweet/SportStatisticsRSweet.github.io/master/VU_iHES.png);
+background-size: contain;
+background-repeat: no-repeat;
+position: absolute;
+top:1em;right:1em;
+}
+</style>
+<script>(function () {
+  let tries = 0
+  function addLogo () {
+    if (typeof slideshow === 'undefined') {
+      tries += 1
+      if (tries < 10) {
+        setTimeout(addLogo, 100)
+      }
+    } else {
+      document.querySelectorAll('.remark-slide-content:not(.title-slide):not(.inverse):not(.hide_logo)')
+        .forEach(function (slide) {
+          const logo = document.createElement('a')
+          logo.classList = 'xaringan-extra-logo'
+          logo.href = 'https://www.vu.edu.au/research/institute-for-health-sport'
+          slide.appendChild(logo)
+        })
+    }
+  }
+  document.addEventListener('DOMContentLoaded', addLogo)
+})()</script>
+</div>
+
+
+
+
+
+
+
+---
+class: left
+
+# Getting Started with Suncorp Super Netball Data
+
+View these slides at [sportstatisticsrsweet.rbind.io/RNetball/Slides](sportstatisticsrsweet.rbind.io/RNetball/Slides) to follow along.
+
+--
+
+First, ensure the packages below are installed or up-to-date:
+
+
+```r
+# Create a list of the packages required
+NetballRPackages &lt;- c(
+    'tidyverse', 
+    'ggdark',
+    'devtools')
+# Install listed packages
+install.packages(NetballRPackages)
+```
+
+--
+
+Next, install [`SuperNetballR`](https://stevelane.github.io/superNetballR/) via `devtools` with a big thanks to Steve Lane for creating the package.
+
+
+```r
+devtools::install_github("stevelane/superNetballR")
+```
+
+---
+class: left
+# Analysing Suncorp Super Netball (Team) Data
+
+.panelset[
+.panel[.panel-name[R Code - Data Import]
+    
+
+```r
+# Load required packages
+library(superNetballR)
+library(tidyverse)
+library(ggdark)
+# 2020 season ID
+SeasonID = "11108" 
+# Download the Firebirds versus Vixens Rd13 match
+FirebirdsVixens_Rd13 &lt;- downloadMatch(SeasonID, 13, 4)
+# Tidy the match
+FirebirdsVixens &lt;- tidyMatch(FirebirdsVixens_Rd13)
+# Inspect the first few rows
+head(FirebirdsVixens, 12)
+```
+]
+    
+.panel[.panel-name[R Output - Data Import]
+
+```
+## # A tibble: 12 x 9
+##    period squadId squadName    squadNickname squadCode stat    value round  game
+##     &lt;int&gt;   &lt;int&gt; &lt;chr&gt;        &lt;chr&gt;         &lt;chr&gt;     &lt;chr&gt;   &lt;dbl&gt; &lt;int&gt; &lt;int&gt;
+##  1      1     804 Melbourne V~ Vixens        MVX       reboun~     0    13     4
+##  2      2     804 Melbourne V~ Vixens        MVX       reboun~     1    13     4
+##  3      3     804 Melbourne V~ Vixens        MVX       reboun~     0    13     4
+##  4      4     804 Melbourne V~ Vixens        MVX       reboun~     0    13     4
+##  5      1     807 Queensland ~ Firebirds     QFB       reboun~     2    13     4
+##  6      2     807 Queensland ~ Firebirds     QFB       reboun~     2    13     4
+##  7      3     807 Queensland ~ Firebirds     QFB       reboun~     4    13     4
+##  8      4     807 Queensland ~ Firebirds     QFB       reboun~     2    13     4
+##  9      1     804 Melbourne V~ Vixens        MVX       goalsF~     8    13     4
+## 10      2     804 Melbourne V~ Vixens        MVX       goalsF~     9    13     4
+## 11      3     804 Melbourne V~ Vixens        MVX       goalsF~     8    13     4
+## 12      4     804 Melbourne V~ Vixens        MVX       goalsF~     7    13     4
+```
+]
+
+.panel[.panel-name[R Code - Unique Stats]    
+
+```r
+# Inspect the first 30 stats
+head(unique(FirebirdsVixens$stat), 30)
+```
+]
+
+.panel[.panel-name[R Output - Unique Stats]
+
+```
+##  [1] "rebounds"                 "goalsFromCentrePass"     
+##  [3] "netPoints"                "penalties"               
+##  [5] "generalPlayTurnovers"     "deflectionWithNoGain"    
+##  [7] "goal_from_zone2"          "goal_from_zone1"         
+##  [9] "timeInPossession"         "points"                  
+## [11] "possessions"              "goalMisses"              
+## [13] "goalAssists"              "disposals"               
+## [15] "attempt_from_zone2"       "centrePassReceives"      
+## [17] "obstructionPenalties"     "attempt_from_zone1"      
+## [19] "goals"                    "offsides"                
+## [21] "goal2"                    "goal1"                   
+## [23] "deflectionPossessionGain" "contactPenalties"        
+## [25] "gainToGoalPerc"           "goalsFromTurnovers"      
+## [27] "centrePassToGoalPerc"     "turnoverToGoalPerc"      
+## [29] "interceptPassThrown"      "gain"
+```
+]
+]
+
+---
+class: left
+# Visualising Suncorp Super Netball (Team) Data
+
+.panelset[
+.panel[.panel-name[R Code - Plot #1]
+    
+
+```r
+# List of Super Netball colours that are CVD friendly
+SquadName_Colours &lt;- c("#FDE725FF", "#73D055FF", "#27AD81FF", 
+ "#7E4E90FF", "#CC6A70FF", "#2D708EFF", "#C0C0C0", "#F68F46FF")
+names(SquadName_Colours) &lt;- c("Sunshine Coast Lightning", "West Coast Fever", "Melbourne Vixens", 
+"Queensland Firebirds", "Adelaide Thunderbirds", "NSW Swifts", "Collingwood Magpies", "GIANTS Netball")
+# Plot - lets look at one stat to start with
+FirebirdsVixens %&gt;% 
+  filter(stat=="generalPlayTurnovers") %&gt;% 
+  ggplot(aes(x = period, y = value, colour = squadName)) +
+  geom_point() 
+```
+]
+    
+.panel[.panel-name[Plot #1]
+&lt;img src="Slides_files/figure-html/unnamed-chunk-4-1.png" width="1080" /&gt;
+]
+
+.panel[.panel-name[R Code - Plot #2]
+
+```r
+# Make it even happier!
+FirebirdsVixens %&gt;% filter(stat=="generalPlayTurnovers") %&gt;% 
+  ggplot(aes(x = period, y = value, colour = squadName)) + geom_line(linetype = "dashed") + geom_point(size = 8) +
+  geom_text(aes(label = value), size = 4, colour = "black", check_overlap = TRUE) +
+  scale_colour_manual(values = SquadName_Colours) + scale_fill_manual(values = SquadName_Colours) +
+  scale_x_continuous(limits = c(1,4), breaks = c(1:4), labels = function(x) paste0("Quarter ", x)) +
+  scale_y_continuous(expand = c(0,0), limits = c(0, 10), breaks = seq(0,10, by = 2)) +
+  labs(x = NULL, y = "Number of General Play Turnovers \n", title = "\n Rd13 - Firebirds v Vixens \n General Play Turnovers \n") +
+  dark_theme_gray()  + 
+  theme(plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
+        plot.background = element_rect(fill = "grey10"), panel.background = element_blank(),
+        panel.grid.major = element_blank(), panel.grid.minor = element_blank(), legend.background = element_blank(),
+        axis.title.y = element_text(size = 12, face = "bold"), axis.ticks.x =  element_line(color = "grey30", size = 0.1),
+        axis.line.x =  element_line(color = "grey30", size = 0.1), axis.text.x = element_text(size = 12, face = "bold"),
+        axis.ticks.y =  element_line(color = "grey30", size = 0.1), axis.line.y =  element_line(color = "grey30", size = 0.1),
+        axis.text.y = element_text(size = 10, face = "bold"), legend.title = element_blank(), legend.position = "bottom") 
+```
+]
+
+.panel[.panel-name[Plot #2]
+&lt;img src="Slides_files/figure-html/unnamed-chunk-5-1.png" width="1080" /&gt;
+]
+]
+
+---
+class: left
+# Analysing Suncorp Super Netball (Athlete) Data
+
+.panelset[
+.panel[.panel-name[R Code - Data Import]
+    
+
+```r
+# Tidy individual player data
+PlayerData &lt;- tidyPlayers(FirebirdsVixens_Rd13)
+# Inspect first 12 rows
+head(PlayerData, 12)
+```
+]
+    
+.panel[.panel-name[R Output - Data Import]
+
+```
+## # A tibble: 12 x 11
+##    period squadId playerId shortDisplayName firstname surname squadName stat 
+##     &lt;int&gt;   &lt;int&gt;    &lt;int&gt; &lt;chr&gt;            &lt;chr&gt;     &lt;chr&gt;   &lt;chr&gt;     &lt;chr&gt;
+##  1      1     804    80577 Weston, J        Jo        Weston  Melbourn~ rebo~
+##  2      2     804    80577 Weston, J        Jo        Weston  Melbourn~ rebo~
+##  3      3     804    80577 Weston, J        Jo        Weston  Melbourn~ rebo~
+##  4      4     804    80577 Weston, J        Jo        Weston  Melbourn~ rebo~
+##  5      1     804  1014127 Smith, A         Allie     Smith   Melbourn~ rebo~
+##  6      2     804  1014127 Smith, A         Allie     Smith   Melbourn~ rebo~
+##  7      3     804  1014127 Smith, A         Allie     Smith   Melbourn~ rebo~
+##  8      4     804  1014127 Smith, A         Allie     Smith   Melbourn~ rebo~
+##  9      1     804    80293 Philip, T        Tegan     Philip  Melbourn~ rebo~
+## 10      2     804    80293 Philip, T        Tegan     Philip  Melbourn~ rebo~
+## 11      3     804    80293 Philip, T        Tegan     Philip  Melbourn~ rebo~
+## 12      4     804    80293 Philip, T        Tegan     Philip  Melbourn~ rebo~
+## # ... with 3 more variables: value &lt;chr&gt;, round &lt;int&gt;, game &lt;int&gt;
+```
+]
+
+
+.panel[.panel-name[R Code - Data Tidy]
+    
+
+```r
+# Call out the stats that are giving us issues
+PlayerData %&gt;% 
+  filter((stat %in% c("startingPositionCode", "currentPositionCode"))) %&gt;% 
+  head(12)
+```
+]
+    
+.panel[.panel-name[R Output - Data Tidy]
+
+```
+## # A tibble: 12 x 11
+##    period squadId playerId shortDisplayName firstname surname squadName stat 
+##     &lt;int&gt;   &lt;int&gt;    &lt;int&gt; &lt;chr&gt;            &lt;chr&gt;     &lt;chr&gt;   &lt;chr&gt;     &lt;chr&gt;
+##  1      1     804    80577 Weston, J        Jo        Weston  Melbourn~ star~
+##  2      2     804    80577 Weston, J        Jo        Weston  Melbourn~ star~
+##  3      3     804    80577 Weston, J        Jo        Weston  Melbourn~ star~
+##  4      4     804    80577 Weston, J        Jo        Weston  Melbourn~ star~
+##  5      1     804  1014127 Smith, A         Allie     Smith   Melbourn~ star~
+##  6      2     804  1014127 Smith, A         Allie     Smith   Melbourn~ star~
+##  7      3     804  1014127 Smith, A         Allie     Smith   Melbourn~ star~
+##  8      4     804  1014127 Smith, A         Allie     Smith   Melbourn~ star~
+##  9      1     804    80293 Philip, T        Tegan     Philip  Melbourn~ star~
+## 10      2     804    80293 Philip, T        Tegan     Philip  Melbourn~ star~
+## 11      3     804    80293 Philip, T        Tegan     Philip  Melbourn~ star~
+## 12      4     804    80293 Philip, T        Tegan     Philip  Melbourn~ star~
+## # ... with 3 more variables: value &lt;chr&gt;, round &lt;int&gt;, game &lt;int&gt;
+```
+]
+]
+
+---
+class: left
+# Analysing Suncorp Super Netball (League - Team) Data
+
+.panelset[
+.panel[.panel-name[R Code - Import All Teams]
+
+
+```r
+# First, create an empty data.frame
+SSN_Rd13 &lt;- FirebirdsVixens[0,]
+# Call out the round we are after, can change this to whatever round you are interested in!
+getRound = 13
+# Run a loop to grab data for Rd13
+for (mm in 1:4) {
+  # Download match
+  matchData &lt;- downloadMatch(SeasonID,getRound,mm)
+  # Tidy data
+  tidy_match &lt;- tidyMatch(matchData)
+  # Append
+  SSN_Rd13 &lt;- rbind(tidy_match,SSN_Rd13)
+}
+# Inspect
+tail(SSN_Rd13, 12)
+```
+]
+
+.panel[.panel-name[R Ouput - Import All Teams]
+
+```
+## # A tibble: 12 x 9
+##    period squadId squadName     squadNickname squadCode stat   value round  game
+##     &lt;int&gt;   &lt;int&gt; &lt;chr&gt;         &lt;chr&gt;         &lt;chr&gt;     &lt;chr&gt;  &lt;dbl&gt; &lt;int&gt; &lt;int&gt;
+##  1      1    8119 Collingwood ~ Magpies       MNC       inter~     3    13     1
+##  2      2    8119 Collingwood ~ Magpies       MNC       inter~     2    13     1
+##  3      3    8119 Collingwood ~ Magpies       MNC       inter~     4    13     1
+##  4      4    8119 Collingwood ~ Magpies       MNC       inter~     1    13     1
+##  5      1    8117 Sunshine Coa~ Lightning     SCL       homeT~     0    13     1
+##  6      2    8117 Sunshine Coa~ Lightning     SCL       homeT~     0    13     1
+##  7      3    8117 Sunshine Coa~ Lightning     SCL       homeT~     0    13     1
+##  8      4    8117 Sunshine Coa~ Lightning     SCL       homeT~     0    13     1
+##  9      1    8119 Collingwood ~ Magpies       MNC       homeT~     1    13     1
+## 10      2    8119 Collingwood ~ Magpies       MNC       homeT~     1    13     1
+## 11      3    8119 Collingwood ~ Magpies       MNC       homeT~     1    13     1
+## 12      4    8119 Collingwood ~ Magpies       MNC       homeT~     1    13     1
+```
+]
+
+.panel[.panel-name[R Code - Plot #3]
+
+
+```r
+# Now plot GPT for each team
+SSN_Rd13 %&gt;% filter(stat=="generalPlayTurnovers") %&gt;% group_by(squadName) %&gt;% summarise(Total = sum(value)) %&gt;% 
+  arrange(desc(Total)) %&gt;% ggplot(aes(x = reorder(squadName, -Total), y = Total, colour = squadName)) +
+  geom_point(size = 10) + geom_segment(aes(x = squadName, y = 0, xend = squadName, yend = Total, colour = squadName), linetype = "dashed") +
+  geom_text(aes(label = Total), size = 4, colour = "black", check_overlap = TRUE) +
+  scale_colour_manual(values = SquadName_Colours) + scale_fill_manual(values = SquadName_Colours) +
+  scale_y_continuous(expand = c(0,0), limits = c(0, 40), breaks = seq(0,40, by = 10)) +
+  labs(x = NULL, y = "Number of General Play Turnovers \n", title = "\n Suncorp Super Netball 2020 \n Rd13 - General Play Turnovers \n") +
+  dark_theme_gray()  + theme(plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
+        plot.background = element_rect(fill = "grey10"), panel.background = element_blank(),
+        panel.grid.major = element_blank(), panel.grid.minor = element_blank(), legend.background = element_blank(),
+        axis.title.y = element_text(size = 12, face = "bold"), axis.ticks.x =  element_line(color = "grey30", size = 0.1),
+        axis.line.x =  element_line(color = "grey30", size = 0.1), 
+        axis.text.x = element_text(size = 12, face = "bold", angle = 45, vjust = 1, hjust = 1),
+        axis.ticks.y =  element_line(color = "grey30", size = 0.1), axis.line.y =  element_line(color = "grey30", size = 0.1),
+        axis.text.y = element_text(size = 10, face = "bold"),legend.title = element_blank(), legend.position = "none")
+```
+]
+
+.panel[.panel-name[Plot #3 - Team Data]
+&lt;img src="Slides_files/figure-html/unnamed-chunk-9-1.png" width="1080" /&gt;
+]
+]
+
+---
+class: left
+# Analysing Suncorp Super Netball (League - Athlete) Data
+
+.panelset[
+.panel[.panel-name[R Code - Import All Athletes]
+
+
+```r
+# First, create an empty data.frame
+SSN_Rd13_Players &lt;- PlayerData[0,]
+# Call out the round we are after, can change this to whatever round you are interested in!
+getRound = 13
+# Run a loop to grab data for Rd13
+for (mm in 1:4) {
+  # Download match
+  matchData &lt;- downloadMatch(SeasonID,getRound,mm)
+  # Tidy data
+  tidy_player &lt;- tidyPlayers(matchData)
+  # Append
+  SSN_Rd13_Players &lt;- rbind(tidy_player,SSN_Rd13_Players)
+}
+# Inspect
+tail(SSN_Rd13_Players, 12)
+```
+]
+
+.panel[.panel-name[R Ouput - All Athletes]
+
+```
+## # A tibble: 12 x 11
+##    period squadId playerId shortDisplayName firstname surname squadName stat 
+##     &lt;int&gt;   &lt;int&gt;    &lt;int&gt; &lt;chr&gt;            &lt;chr&gt;     &lt;chr&gt;   &lt;chr&gt;     &lt;chr&gt;
+##  1      1    8119  1010545 Nelson, S        Shimona   Nelson  Collingw~ inte~
+##  2      2    8119  1010545 Nelson, S        Shimona   Nelson  Collingw~ inte~
+##  3      3    8119  1010545 Nelson, S        Shimona   Nelson  Collingw~ inte~
+##  4      4    8119  1010545 Nelson, S        Shimona   Nelson  Collingw~ inte~
+##  5      1    8119  1021073 Black, K         Kaitlyn   Black   Collingw~ inte~
+##  6      2    8119  1021073 Black, K         Kaitlyn   Black   Collingw~ inte~
+##  7      3    8119  1021073 Black, K         Kaitlyn   Black   Collingw~ inte~
+##  8      4    8119  1021073 Black, K         Kaitlyn   Black   Collingw~ inte~
+##  9      1    8117  1014128 Proscovia, P     Peace     Prosco~ Sunshine~ inte~
+## 10      2    8117  1014128 Proscovia, P     Peace     Prosco~ Sunshine~ inte~
+## 11      3    8117  1014128 Proscovia, P     Peace     Prosco~ Sunshine~ inte~
+## 12      4    8117  1014128 Proscovia, P     Peace     Prosco~ Sunshine~ inte~
+## # ... with 3 more variables: value &lt;chr&gt;, round &lt;int&gt;, game &lt;int&gt;
+```
+]
+
+.panel[.panel-name[R Code - Plot #4]
+
+
+```r
+#  Plot the top 10 athletes for stat = feedWithAttempt
+SSN_Rd13_Players %&gt;% filter(!(stat %in% c("startingPositionCode", "currentPositionCode"))) %&gt;% mutate_at("value", as.numeric) %&gt;% filter(stat=="feedWithAttempt") %&gt;% group_by(shortDisplayName, squadName) %&gt;%  summarise(Total = sum(value)) %&gt;% 
+  arrange(desc(Total)) %&gt;% head(10) %&gt;% ggplot(aes(x = reorder(shortDisplayName, -Total), y = Total, colour = squadName)) +
+  geom_point(size = 10) + geom_segment(aes(x = shortDisplayName, y = 0, xend = shortDisplayName, yend = Total, colour = squadName), linetype = "dashed") +
+  geom_text(aes(label = Total), size = 4, colour = "black", check_overlap = TRUE) +
+  scale_colour_manual(values = SquadName_Colours) + scale_fill_manual(values = SquadName_Colours) +
+  scale_y_continuous(expand = c(0,0), limits = c(0, 40), breaks = seq(0,40, by = 10)) +
+  labs(x = NULL, y = "Number of Feeds with Attempt \n", title = "\n Suncorp Super Netball 2020 \n Rd13 - Feeds with Attempt (Individual Players) \n") +
+  dark_theme_gray()  + theme(plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
+        plot.background = element_rect(fill = "grey10"), panel.background = element_blank(),
+        panel.grid.major = element_blank(), panel.grid.minor = element_blank(), legend.background = element_blank(),
+        axis.title.y = element_text(size = 12, face = "bold"), axis.ticks.x =  element_line(color = "grey30", size = 0.1),
+        axis.line.x =  element_line(color = "grey30", size = 0.1), 
+        axis.text.x = element_text(size = 12, face = "bold", angle = 45, vjust = 1, hjust = 1),
+        axis.ticks.y =  element_line(color = "grey30", size = 0.1), axis.line.y =  element_line(color = "grey30", size = 0.1),
+        axis.text.y = element_text(size = 10, face = "bold"),legend.title = element_blank(), legend.position = "none") 
+```
+]
+
+.panel[.panel-name[Plot #4]
+&lt;img src="Slides_files/figure-html/unnamed-chunk-11-1.png" width="1080" /&gt;
+]
+]
+
+---
+class: left, top
+# Thank you for Listening!
+.pull-left[
+&lt;img src="https://raw.githubusercontent.com/SportStatisticsRSweet/RLadiesMelbourneTalk/master/Dudley.jpg" width="70%"/&gt; 
+]
+
+&lt;span style = 'font-size: 50%;'&gt;
+.pull-right[
+&lt;br&gt;
+
+## &lt;svg style="height:0.8em;top:.04em;position:relative;fill:black;" viewBox="0 0 512 512"&gt;&lt;path d="M502.3 190.8c3.9-3.1 9.7-.2 9.7 4.7V400c0 26.5-21.5 48-48 48H48c-26.5 0-48-21.5-48-48V195.6c0-5 5.7-7.8 9.7-4.7 22.4 17.4 52.1 39.5 154.1 113.6 21.1 15.4 56.7 47.8 92.2 47.6 35.7.3 72-32.8 92.3-47.6 102-74.1 131.6-96.3 154-113.7zM256 320c23.2.4 56.6-29.2 73.4-41.4 132.7-96.3 142.8-104.7 173.4-128.7 5.8-4.5 9.2-11.5 9.2-18.9v-19c0-26.5-21.5-48-48-48H48C21.5 64 0 85.5 0 112v19c0 7.4 3.4 14.3 9.2 18.9 30.6 23.9 40.7 32.4 173.4 128.7 16.8 12.2 50.2 41.8 73.4 41.4z"/&gt;&lt;/svg&gt; [Alice.Sweeting@vu.edu.au](mailto:Alice.Sweeting@vu.edu.au)&lt;br&gt;
+## &lt;svg style="height:0.8em;top:.04em;position:relative;fill:black;" viewBox="0 0 512 512"&gt;&lt;path d="M459.37 151.716c.325 4.548.325 9.097.325 13.645 0 138.72-105.583 298.558-298.558 298.558-59.452 0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055 0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421 0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391 0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04 0-57.828 46.782-104.934 104.934-104.934 30.213 0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"/&gt;&lt;/svg&gt; [alicesweeting](https://twitter.com/alicesweeting)&lt;br&gt;
+## &lt;svg style="height:0.8em;top:.04em;position:relative;fill:black;" viewBox="0 0 496 512"&gt;&lt;path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/&gt;&lt;/svg&gt; [SportStatisticsRSweet](https://github.com/SportStatisticsRSweet)&lt;br&gt;
+## &lt;svg style="height:0.8em;top:.04em;position:relative;fill:black;" viewBox="0 0 512 512"&gt;&lt;path d="M326.612 185.391c59.747 59.809 58.927 155.698.36 214.59-.11.12-.24.25-.36.37l-67.2 67.2c-59.27 59.27-155.699 59.262-214.96 0-59.27-59.26-59.27-155.7 0-214.96l37.106-37.106c9.84-9.84 26.786-3.3 27.294 10.606.648 17.722 3.826 35.527 9.69 52.721 1.986 5.822.567 12.262-3.783 16.612l-13.087 13.087c-28.026 28.026-28.905 73.66-1.155 101.96 28.024 28.579 74.086 28.749 102.325.51l67.2-67.19c28.191-28.191 28.073-73.757 0-101.83-3.701-3.694-7.429-6.564-10.341-8.569a16.037 16.037 0 0 1-6.947-12.606c-.396-10.567 3.348-21.456 11.698-29.806l21.054-21.055c5.521-5.521 14.182-6.199 20.584-1.731a152.482 152.482 0 0 1 20.522 17.197zM467.547 44.449c-59.261-59.262-155.69-59.27-214.96 0l-67.2 67.2c-.12.12-.25.25-.36.37-58.566 58.892-59.387 154.781.36 214.59a152.454 152.454 0 0 0 20.521 17.196c6.402 4.468 15.064 3.789 20.584-1.731l21.054-21.055c8.35-8.35 12.094-19.239 11.698-29.806a16.037 16.037 0 0 0-6.947-12.606c-2.912-2.005-6.64-4.875-10.341-8.569-28.073-28.073-28.191-73.639 0-101.83l67.2-67.19c28.239-28.239 74.3-28.069 102.325.51 27.75 28.3 26.872 73.934-1.155 101.96l-13.087 13.087c-4.35 4.35-5.769 10.79-3.783 16.612 5.864 17.194 9.042 34.999 9.69 52.721.509 13.906 17.454 20.446 27.294 10.606l37.106-37.106c59.271-59.259 59.271-155.699.001-214.959z"/&gt;&lt;/svg&gt; [SportStatisticsRSweet.rbind.io](http://sportstatisticsrsweet.rbind.io/)&lt;br&gt;
+]
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script src="https://platform.twitter.com/widgets.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false,
+"ratio": "16:9"
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
